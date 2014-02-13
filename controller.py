@@ -60,8 +60,14 @@ class controller:
                 return
             time.sleep(sleep)
 
+    def getColor(self):
+        time.sleep(3)
+        x, y = autopy.mouse.get_pos()
+        screen = autopy.bitmap.capture_screen()
+        print screen.get_color(x, y)
+
     #
-    # ...
+    #
     #
     def getWorkspace(self):
         print "\x1b[35m[NOTICE]\x1b[0m Setting up workspace..."
@@ -81,5 +87,5 @@ class controller:
             sys.exit(1)
         else:
             print "\x1b[32m[SUCCES]\x1b[0m Using rectangle (" + str(x1) + ", " + str(y1) + ", " + str(x2) + ", " + str(y2) + ")."
-            self.workspace = (x1, y1, x2, y2)
+            self.workspace = ((x1, y1), (x2 - x1, y2 - y1))
 
