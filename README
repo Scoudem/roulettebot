@@ -1,3 +1,7 @@
+PACKAGES:
+https://pypi.python.org/pypi/colorama
+https://pypi.python.org/pypi/autopy/
+
 USE THIS GAME HERE: https://nl.unibet.com/launcher-casino?gamecid=1.7143&realMoney=false
 
 To start use: python roulettebot.py (or any other way of building).
