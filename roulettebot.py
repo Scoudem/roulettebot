@@ -25,11 +25,9 @@ class roulettebot:
     def main(self):
         while(True):
             time.sleep(1)
-            screen = autopy.bitmap.capture_screen(self.controller.workspace)
-            result = screen.find_color(16777003, 0.0)
-            #ZWART 16777003
-            #ROOD 16192018
-            self.controller.moveMouseAbs(result[0] + self.controller.workspace[0][0], result[1]+ self.controller.workspace[0][1])
+            self.controller.spin()
+            time.sleep(2)
+            self.controller.scanColor()
 
 #
 # Default run
