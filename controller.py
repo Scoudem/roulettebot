@@ -8,7 +8,7 @@
 
 import autopy
 import time
-import sys
+from PIL import ImageGrab
 
 class controller:
 
@@ -87,8 +87,10 @@ class controller:
     # Scans for a color in the workspace.
     #
     def scanColor(self):
-        area = autopy.bitmap.capture_screen(self.workspace)
-        result = area.find_color(9243915, 0.1)
+        main = autopy.bitmap.capture_screen()
+        area = main.get_portion(self.workspace[0], self.workspace[1])
+        area.save("area.png", "png")
+        result = area.find_color(14688800, 0.1)
         if(result != None):
             print self.notice + " Found red"
             self.lastcolor = "red"
