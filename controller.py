@@ -143,7 +143,7 @@ class controller:
             x = self.blackx
             y = self.blacky
 
-        print self.notice + "Current betvalue: " + str(self.betstreak)
+        print self.notice + " Current betvalue: " + str(self.betstreak)
 
         self.moveMouseAbs(x, y)
         for i in range(0, self.betstreak):
@@ -161,22 +161,6 @@ class controller:
         time.sleep(5)
         autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
         time.sleep(1)
-
-    #
-    # USELESS ATM
-    #
-    def scan(self):
-        print self.notice + " Scanning for results..."
-        area = autopy.bitmap.capture_screen(self.workspace)
-        target = autopy.bitmap.Bitmap.open("image/control/black.PNG", "png")
-        result = area.find_bitmap(target, 0.3)
-        if(result != None):
-            autopy.mouse.smooth_move(result[0], result[1])
-            print "FOUND BLACK "
-        target = autopy.bitmap.Bitmap.open("image/control/red.PNG", "png")
-        result = area.find_bitmap(target, 0.3)
-        if(result != None):
-            print "FOUND RED"
 
     #
     # Gets the workspace. Prompts the user for input.
