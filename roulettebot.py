@@ -4,7 +4,7 @@
 # DESCRIPTION:
 #
 # AUTHOR: Tristan van Vaalen
-# VERSION: 0.0.0.2
+# VERSION: 0.0.1.0
 #
 
 import controller
@@ -19,7 +19,7 @@ class roulettebot:
         self.graphics = graphics.graphics()
 
     def setup(self):
-        print "\x1b[36m[STARTUP]\x1b[0m ROULETTEBOT VERSION 0.0.0.2"
+        print "\x1b[36m[STARTUP]\x1b[0m ROULETTEBOT VERSION 0.0.1.0"
         self.controller.getWorkspace()
 
     def main(self):
@@ -28,6 +28,10 @@ class roulettebot:
             self.controller.spin()
             time.sleep(2)
             self.controller.scanColor()
+            time.sleep(0.1)
+            result = self.controller.checkData()
+            if(result != None):
+                self.controller.bet(result)
 
 #
 # Default run

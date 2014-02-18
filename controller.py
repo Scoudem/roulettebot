@@ -17,6 +17,9 @@ class controller:
         self.succes = "\x1b[32m[SUCCES]\x1b[0m"
         self.prompt = "\x1b[34m[PROMPT]\x1b[0m"
         self.fatal  = "\x1b[31m[FATAL]\x1b[0m"
+        self.streak = (1, None) #First: streak number. Second: color
+        self.lastcolor = None
+        self.betstreak = 1
 
     #
     # Moves the mouse to position x,y.
@@ -67,6 +70,7 @@ class controller:
     # Moves the mouse to the defined spinbutton location and clicks.
     #
     def spin(self):
+        print self.notice + " Spinning..."
         self.moveMouseAbs(self.spinx, self.spiny)
         time.sleep(0.100)
         autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
@@ -87,12 +91,74 @@ class controller:
         result = area.find_color(9243915, 0.1)
         if(result != None):
             print self.notice + " Found red"
+            self.lastcolor = "red"
         else:
             result = area.find_color(1907997, 0.1)
             if(result != None):
                 print self.notice + " Found black"
+                self.lastcolor = "black"
             else:
                 print self.notice + " Found green"
+                self.lastcolor = "green"
+
+    #
+    # Checks if we have a streak. if so: start betting.
+    #
+    def checkData(self):
+        if(self.lastcolor == self.streak[1]):
+            self.streak = (self.streak[0] + 1, self.streak[1])
+            print self.notice + " " + str(self.streak[0]) + "x " + self.streak[1] + " streak. "
+            
+            if(self.streak[0] >= 4):
+                if(self.streak[1] == "red"):
+                    return "black"
+                else:
+                    return "red"
+            else:
+                return None
+        else:
+            if(self.betstreak != 1):
+                if(self.lastcolor == "green"):
+                    if(self.streak[1] == "red"):
+                        return "black"
+                    else:
+                        return "red"
+                else:
+                    print self.succes + " WON WITH x " + str(self.betstreak)
+                    self.clearBet()
+                    self.betstreak = 1
+            self.streak = (1, self.lastcolor)
+            return None
+
+    #
+    # Clicks the desired collor n amount of times
+    #
+    def bet(self, color):
+        if(color == "red"):
+            x = self.redx
+            y = self.redy
+        else:
+            x = self.blackx
+            y = self.blacky
+
+        print self.notice + "Current betvalue: " + str(self.betstreak)
+
+        self.moveMouseAbs(x, y)
+        for i in range(0, self.betstreak):
+            time.sleep(0.2)
+            autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+
+        self.betstreak *= 2
+
+    #
+    # Clicks the clearbet button
+    #
+    def clearBet(self):
+        print self.notice + "Clearing bet..."
+        self.moveMouseAbs(self.clearx, self.cleary)
+        time.sleep(5)
+        autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+        time.sleep(1)
 
     #
     # USELESS ATM
@@ -133,17 +199,22 @@ class controller:
             print self.succes + " Using rectangle (" + str(x1) + ", " + str(y1) + ", " + str(x2) + ", " + str(y2) + ")."
             self.workspace = ((x1, y1), (x2 - x1, y2 - y1))
 
-        # print "\x1b[34m[PROMPT]\x1b[0m Select red..."
-        # time.sleep(3)
-        # self.redx, self.redy = autopy.mouse.get_pos()
-        # print "\x1b[32m[SUCCES]\x1b[0m Using point (" + str(self.redx) + ", " + str(self.redy) + ")"
+        print self.prompt + " Select red..."
+        time.sleep(3)
+        self.redx, self.redy = autopy.mouse.get_pos()
+        print self.prompt + " Using point (" + str(self.redx) + ", " + str(self.redy) + ")"
 
-        # print "\x1b[34m[PROMPT]\x1b[0m Select black..."
-        # time.sleep(3)
-        # self.blackx, self.blacky = autopy.mouse.get_pos()
-        # print "\x1b[32m[SUCCES]\x1b[0m Using point (" + str(self.blackx) + ", " + str(self.blacky) + ")"
+        print self.prompt + " Select black..."
+        time.sleep(3)
+        self.blackx, self.blacky = autopy.mouse.get_pos()
+        print self.prompt + " Using point (" + str(self.blackx) + ", " + str(self.blacky) + ")"
 
         print self.prompt + " Select spin..."
         time.sleep(3)
         self.spinx, self.spiny = autopy.mouse.get_pos()
         print self.succes + " Using point (" + str(self.spinx) + ", " + str(self.spiny) + ")"
+
+        print self.prompt + " Select clear..."
+        time.sleep(3)
+        self.clearx, self.cleary = autopy.mouse.get_pos()
+        print self.succes + " Using point (" + str(self.clearx) + ", " + str(self.cleary) + ")"
