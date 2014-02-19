@@ -26,6 +26,10 @@ class controller:
         self.lastcolor = None
         self.betstreak = 1
 
+        self.numbers = {}
+        for i in range(0,37):
+            self.numbers[i] = autopy.bitmap.Bitmap.open("image/number/" + str(i) + ".png", "png")
+
     #
     # Moves the mouse to position x,y.
     # Param: x, y
@@ -108,6 +112,15 @@ class controller:
                 if(self.p): print self.notice + " Found green"
                 self.lastcolor = "green"
 
+    def scanNumber(self):
+        main = autopy.bitmap.capture_screen()
+        area = main.get_portion(self.workspaceNumber[0], self.workspaceNumber[1])
+        for i in range(0, 37):
+            result = area.find_bitmap(self.numbers[i])
+            if result != None:
+                print "found " + str(i)
+                break;
+
     #
     # Checks if we have a streak. if so: start betting.
     #
@@ -172,23 +185,41 @@ class controller:
     #
     def getWorkspace(self):
         if(self.p): print self.notice + " Setting up workspace..."
-        if(self.p): print self.prompt + " Select left upper corner..."
+        if(self.p): print self.prompt + " Select left upper corner for NUMBER..."
         time.sleep(3)
-        x1, y1 = autopy.mouse.get_pos()
-        if(self.p): print self.succes + " Left upper corner: (" + str(x1) + ", " + str(y1) + ")."
+        nx1, ny1 = autopy.mouse.get_pos()
+        if(self.p): print self.succes + " Left upper corner: (" + str(nx1) + ", " + str(ny1) + ")."
 
-        if(self.p): print self.prompt + " Select right bottom corner..."
+        if(self.p): print self.prompt + " Select right bottom corner for NUMBER..."
         time.sleep(3)
-        x2, y2 = autopy.mouse.get_pos()
-        if(self.p): print self.succes + " Right bottom corner: (" + str(x2) + ", " + str(y2) + ")."
+        nx2, ny2 = autopy.mouse.get_pos()
+        if(self.p): print self.succes + " Right bottom corner: (" + str(nx2) + ", " + str(ny2) + ")."
 
-        if(x1 >= x2 or y1 >= y2):
+        if(self.p): print self.prompt + " Select left upper corner for COLOR..."
+        time.sleep(3)
+        cx1, cy1 = autopy.mouse.get_pos()
+        if(self.p): print self.succes + " Left upper corner: (" + str(cx1) + ", " + str(cy1) + ")."
+
+        if(self.p): print self.prompt + " Select right bottom corner for COLOR..."
+        time.sleep(3)
+        cx2, cy2 = autopy.mouse.get_pos()
+        if(self.p): print self.succes + " Right bottom corner: (" + str(cx2) + ", " + str(cy2) + ")."
+
+        if(nx1 >= nx2 or ny1 >= ny2):
             # TODO: restart
             if(self.p): print self.fatal + " Invalid dimensions. Shutting down"
             sys.exit(1)
         else:
-            if(self.p): print self.succes + " Using rectangle (" + str(x1) + ", " + str(y1) + ", " + str(x2) + ", " + str(y2) + ")."
-            self.workspace = ((x1, y1), (x2 - x1, y2 - y1))
+            if(self.p): print self.succes + " Using rectangle (" + str(nx1) + ", " + str(ny1) + ", " + str(nx2) + ", " + str(ny2) + ")."
+            self.workspaceNumber = ((nx1, ny1), (nx2 - nx1, ny2 - ny1))
+
+        if(cx1 >= cx2 or cy1 >= cy2):
+            # TODO: restart
+            if(self.p): print self.fatal + " Invalid dimensions. Shutting down"
+            sys.exit(1)
+        else:
+            if(self.p): print self.succes + " Using rectangle (" + str(cx1) + ", " + str(cy1) + ", " + str(cx2) + ", " + str(cy2) + ")."
+            self.workspace = ((cx1, cy1), (cx2 - cx1, cy2 - cy1))
 
         if(self.p): print self.prompt + " Select red..."
         time.sleep(3)
