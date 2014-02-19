@@ -9,7 +9,6 @@
 import autopy
 import time
 import sys
-from PIL import ImageGrab
 import colorama
 colorama.init()
 
