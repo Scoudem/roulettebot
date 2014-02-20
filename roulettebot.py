@@ -13,6 +13,8 @@ import time
 import sys, getopt
 import autopy
 import colorama
+import webbrowser
+colorama.init()
 
 class roulettebot:
 
@@ -51,13 +53,14 @@ class roulettebot:
 
     def setup(self):
         print "\x1b[36m[STARTUP]\x1b[0m ROULETTEBOT VERSION 0.0.1.0"
+        webbrowser.open("https://nl.unibet.com/launcher-casino?gamecid=1.7143&realMoney=false")
         self.controller.getWorkspace()
 
     def main(self):
         while(True):
             time.sleep(1)
             self.controller.spin()
-            time.sleep(2)
+            time.sleep(1)
             self.controller.scanColor()
             time.sleep(0.1)
             self.controller.scanNumber()

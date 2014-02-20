@@ -118,7 +118,7 @@ class controller:
         for i in range(0, 37):
             result = area.find_bitmap(self.numbers[i])
             if result != None:
-                print "found " + str(i)
+                if(self.p): print self.notice + " Found " + str(i)
                 break;
 
     #
