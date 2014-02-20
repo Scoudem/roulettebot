@@ -10,6 +10,7 @@ import autopy
 import time
 import sys
 import colorama
+import ctypes
 colorama.init()
 
 class controller:
@@ -26,9 +27,9 @@ class controller:
         self.lastcolor = None
         self.betstreak = 1
 
-        self.numbers = {}
+        self.numbers = {0: ('green', None), 1: ('red', None), 2: ('black', None), 3: ('red', None), 4: ('black', None), 5: ('red', None), 6: ('black', None), 7: ('red', None), 8: ('black', None), 9: ('red', None), 10: ('black', None), 11: ('black', None), 12: ('red', None), 13: ('black', None), 14: ('red', None), 15: ('black', None), 16: ('red', None), 17: ('black', None), 18: ('red', None), 19: ('red', None), 20: ('black', None), 21: ('red', None), 22: ('black', None), 23: ('red', None), 24: ('black', None), 25: ('red', None), 26: ('black', None), 27: ('red', None), 28: ('black', None), 29: ('black', None), 30: ('red', None), 31: ('black', None), 32: ('red', None), 33: ('black', None), 34: ('red', None), 35: ('black', None), 36: ('red', None)}
         for i in range(0,37):
-            self.numbers[i] = autopy.bitmap.Bitmap.open("image/number/" + str(i) + ".png", "png")
+            self.numbers[i] = (self.numbers[i][0], autopy.bitmap.Bitmap.open("image/number/" + str(i) + ".png", "png"))
 
     #
     # Moves the mouse to position x,y.
@@ -36,7 +37,7 @@ class controller:
     #
     def moveMouseAbs(self, x, y):
         # if(self.p): print self.notice + " Moving to (" + str(x) + ", " + str(y) + ")."
-        autopy.mouse.move(x, y)
+        ctypes.windll.user32.SetCursorPos(x, y)
         # if(self.p): print self.succes + " Moved to (" + str(x) + ", " + str(y) + ")."
 
     #
@@ -49,31 +50,13 @@ class controller:
 
         if(hold == True):
             autopy.mouse.toggle(True, autopy.mouse.LEFT_BUTTON)
-            autopy.mouse.move(x + xoff, y + yoff)
+            ctypes.windll.user32.SetCursorPos(x + xoff, y + yoff)
             autopy.mouse.toggle(False, autopy.mouse.LEFT_BUTTON)
         else:
-            autopy.mouse.move(x + xoff, y + yoff)
+            ctypes.windll.user32.SetCursorPos(x + xoff, y + yoff)
 
         # if(self.p): print self.succes + " Moved " + str(xoff) + "x and " + str(yoff) + "y."
         time.sleep(sleep)
-
-    #
-    # Tries to find a image on screen
-    #
-    def findImage(self, imagename, click, offsetx, offsety, sleep):
-        if(self.p): print self.notice + " Searching for " + imagename + "..."
-        target = autopy.bitmap.Bitmap.open("image/" + imagename, "png")
-
-        while(True):
-            screen = autopy.bitmap.capture_screen()
-            result = screen.find_bitmap(target, 0.0)
-            if not(result == None) :
-                if(self.p): print self.succes + " Found " + imagename + ". Moving to target..."
-                autopy.mouse.smooth_move(result[0] + offsetx, result[1] + offsety)
-                if(click == True):
-                    autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
-                return
-            time.sleep(sleep)
 
     #
     # Moves the mouse to the defined spinbutton location and clicks.
@@ -92,34 +75,18 @@ class controller:
         screen = autopy.bitmap.capture_screen()
         if(self.p): print screen.get_color(x, y)
 
-    #
-    # Scans for a color in the workspace.
-    #
-    def scanColor(self):
-        main = autopy.bitmap.capture_screen()
-        area = main.get_portion(self.workspace[0], self.workspace[1])
-        area.save("area.png", "png")
-        result = area.find_color(14688800, 0.1)
-        if(result != None):
-            if(self.p): print self.notice + " Found red"
-            self.lastcolor = "red"
-        else:
-            result = area.find_color(1907997, 0.1)
-            if(result != None):
-                if(self.p): print self.notice + " Found black"
-                self.lastcolor = "black"
-            else:
-                if(self.p): print self.notice + " Found green"
-                self.lastcolor = "green"
 
     def scanNumber(self):
         main = autopy.bitmap.capture_screen()
         area = main.get_portion(self.workspaceNumber[0], self.workspaceNumber[1])
         for i in range(0, 37):
-            result = area.find_bitmap(self.numbers[i])
+            result = area.find_bitmap(self.numbers[i][1])
             if result != None:
-                if(self.p): print self.notice + " Found " + str(i)
+                if(self.p): print self.notice + " Found " + str(i) + " " + self.numbers[i][0]
+                self.lastcolor = self.numbers[i][0]
                 break;
+
+
 
     #
     # Checks if we have a streak. if so: start betting.
@@ -153,7 +120,7 @@ class controller:
     #
     # Clicks the desired collor n amount of times
     #
-    def bet(self, color):
+    def betColor(self, color):
         if(color == "red"):
             x = self.redx
             y = self.redy
@@ -169,6 +136,20 @@ class controller:
             autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
 
         self.betstreak *= 2
+
+    def betNumber(self, number):
+        if number < 25:
+            positionx = self.fieldx + (number + 2 - (3 * ((number - 1)/ 3))) * 22 + (((number - 1) / 3) * (22 + (number * 0.2)))
+            offsety = 3 + (3 * ((number - 1)/ 3))
+            positiony = self.fieldy + ((offsety - number) * 23) + (((number - 1) / 3) * (18 - (number * 0.15)))
+
+        else:
+            positionx = self.fieldx + (number + 2 - (3 * ((number - 1)/ 3))) * 22 + (((number - 1) / 3) * (22 + (number * 0.15)))
+            offsety = 3 + (3 * ((number - 1)/ 3))
+            positiony = self.fieldy + ((offsety - number) * 23) + (((number - 1) / 3) * (18 - (number * 0.05)))
+        ctypes.windll.user32.SetCursorPos(int(round(positionx)), int(round(positiony)))
+        time.sleep(0.2)
+        autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
 
     #
     # Clicks the clearbet button
@@ -195,16 +176,6 @@ class controller:
         nx2, ny2 = autopy.mouse.get_pos()
         if(self.p): print self.succes + " Right bottom corner: (" + str(nx2) + ", " + str(ny2) + ")."
 
-        if(self.p): print self.prompt + " Select left upper corner for COLOR..."
-        time.sleep(3)
-        cx1, cy1 = autopy.mouse.get_pos()
-        if(self.p): print self.succes + " Left upper corner: (" + str(cx1) + ", " + str(cy1) + ")."
-
-        if(self.p): print self.prompt + " Select right bottom corner for COLOR..."
-        time.sleep(3)
-        cx2, cy2 = autopy.mouse.get_pos()
-        if(self.p): print self.succes + " Right bottom corner: (" + str(cx2) + ", " + str(cy2) + ")."
-
         if(nx1 >= nx2 or ny1 >= ny2):
             # TODO: restart
             if(self.p): print self.fatal + " Invalid dimensions. Shutting down"
@@ -213,13 +184,11 @@ class controller:
             if(self.p): print self.succes + " Using rectangle (" + str(nx1) + ", " + str(ny1) + ", " + str(nx2) + ", " + str(ny2) + ")."
             self.workspaceNumber = ((nx1, ny1), (nx2 - nx1, ny2 - ny1))
 
-        if(cx1 >= cx2 or cy1 >= cy2):
-            # TODO: restart
-            if(self.p): print self.fatal + " Invalid dimensions. Shutting down"
-            sys.exit(1)
-        else:
-            if(self.p): print self.succes + " Using rectangle (" + str(cx1) + ", " + str(cy1) + ", " + str(cx2) + ", " + str(cy2) + ")."
-            self.workspace = ((cx1, cy1), (cx2 - cx1, cy2 - cy1))
+        if(self.p): print self.prompt + " Select corner of playfield (left corner of 1-18 box)..."
+        time.sleep(3)
+        self.fieldx, self.fieldy = autopy.mouse.get_pos()
+        self.fieldy -= 85
+        if(self.p): print self.prompt + " Using point (" + str(self.fieldx) + ", " + str(self.fieldy) + ")"
 
         if(self.p): print self.prompt + " Select red..."
         time.sleep(3)

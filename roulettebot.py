@@ -59,13 +59,12 @@ class roulettebot:
             time.sleep(1)
             self.controller.spin()
             time.sleep(1)
-            self.controller.scanColor()
-            time.sleep(0.1)
             self.controller.scanNumber()
             time.sleep(0.1)
             result = self.controller.checkData()
             if(result != None):
-                self.controller.bet(result)
+                self.controller.betColor(result)
+            # self.controller.betNumber(WHATEVERYOUWANT)
 
 #
 # Default run
