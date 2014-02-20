@@ -23,9 +23,12 @@ class controller:
         self.succes = "\x1b[32m[SUCCES]\x1b[0m"
         self.prompt = "\x1b[34m[PROMPT]\x1b[0m"
         self.fatal  = "\x1b[31m[FATAL]\x1b[0m"
-        self.streak = (1, None) #First: streak number. Second: color
+        self.streakColor = (1, None) #First: streakColor number. Second: color
+        self.streakRow = (1, 1)
+        self.betstreakRow = 1
         self.lastcolor = None
-        self.betstreak = 1
+        self.lastnumber = None
+        self.betstreakColor = 1
 
         self.numbers = {0: ('green', None), 1: ('red', None), 2: ('black', None), 3: ('red', None), 4: ('black', None), 5: ('red', None), 6: ('black', None), 7: ('red', None), 8: ('black', None), 9: ('red', None), 10: ('black', None), 11: ('black', None), 12: ('red', None), 13: ('black', None), 14: ('red', None), 15: ('black', None), 16: ('red', None), 17: ('black', None), 18: ('red', None), 19: ('red', None), 20: ('black', None), 21: ('red', None), 22: ('black', None), 23: ('red', None), 24: ('black', None), 25: ('red', None), 26: ('black', None), 27: ('red', None), 28: ('black', None), 29: ('black', None), 30: ('red', None), 31: ('black', None), 32: ('red', None), 33: ('black', None), 34: ('red', None), 35: ('black', None), 36: ('red', None)}
         for i in range(0,37):
@@ -84,38 +87,70 @@ class controller:
             if result != None:
                 if(self.p): print self.notice + " Found " + str(i) + " " + self.numbers[i][0]
                 self.lastcolor = self.numbers[i][0]
+                self.lastnumber = i
                 break;
 
-
-
     #
-    # Checks if we have a streak. if so: start betting.
+    # Checks if we have a streakColor. if so: start betting.
     #
-    def checkData(self):
-        if(self.lastcolor == self.streak[1]):
-            self.streak = (self.streak[0] + 1, self.streak[1])
-            if(self.p): print self.notice + " " + str(self.streak[0]) + "x " + self.streak[1] + " streak. "
+    def checkDataColor(self):
+        if(self.lastcolor == self.streakColor[1]):
+            self.streakColor = (self.streakColor[0] + 1, self.streakColor[1])
+            if(self.p): print self.notice + " " + str(self.streakColor[0]) + "x " + self.streakColor[1] + " streakColor. "
             
-            if(self.streak[0] >= self.risk):
-                if(self.streak[1] == "red"):
+            if(self.streakColor[0] >= self.risk):
+                if(self.streakColor[1] == "red"):
                     return "black"
                 else:
                     return "red"
             else:
                 return None
         else:
-            if(self.betstreak != 1):
+            if(self.betstreakColor != 1):
                 if(self.lastcolor == "green"):
-                    if(self.streak[1] == "red"):
+                    if(self.streakColor[1] == "red"):
                         return "black"
                     else:
                         return "red"
                 else:
-                    if(self.p): print self.succes + " WON WITH x " + str(self.betstreak)
+                    if(self.p): print self.succes + " WON WITH x " + str(self.betstreakColor) + " ON COLOR"
                     self.clearBet()
-                    self.betstreak = 1
-            self.streak = (1, self.lastcolor)
+                    self.betstreakColor = 1
+            self.streakColor = (1, self.lastcolor)
             return None
+
+
+    #
+    # MAKE A BUFFER
+    # DETECT FROM LAST 4 * RISK ROLLS WHAT THE LEAST ROLLED ROW IS
+    # START BETTING ON THAT
+    #
+    def checkDataRow(self):
+        if(self.lastnumber % 3 == 0):
+            row = 3
+        elif(self.lastnumber % 3 - 2 == 0):
+            row = 2
+        elif(self.lastnumber % 3 - 1 == 0):
+            row = 1
+        else:
+            row = -1
+
+        if self.streakRow[1] != row:
+            self.streakRow = (self.streakRow[0] + 1, self.streakRow[1])
+            if(self.p): print self.notice + " " + str(self.streakRow[0]) + "x row " + str(self.streakRow[1]) + " streakRow."
+
+            if(self.streakRow[0] >= self.risk * 2):
+                return self.streakRow[1]
+            else:
+                return None
+        else:
+            self.streakRow = (1, row)
+            if self.betstreakRow != 1:
+                if(self.p): print self.succes + " WON WITH x " + str(self.betstreakRow) + " ON ROW"
+                self.clearBet()
+                self.betstreakRow = 1
+            return None
+
 
     #
     # Clicks the desired collor n amount of times
@@ -128,16 +163,16 @@ class controller:
             x = self.blackx
             y = self.blacky
 
-        if(self.p): print self.notice + " Current betvalue: " + str(self.betstreak)
+        if(self.p): print self.notice + " Current betvalue: " + str(self.betstreakColor)
 
         self.moveMouseAbs(x, y)
-        for i in range(0, self.betstreak):
+        for i in range(0, self.betstreakColor):
             time.sleep(0.2)
             autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
 
-        self.betstreak *= 2
+        self.betstreakColor *= 2
 
-    def betNumber(self, number):
+    def betNumber(self, number, t):
         if number < 25:
             positionx = self.fieldx + (number + 2 - (3 * ((number - 1)/ 3))) * 22 + (((number - 1) / 3) * (22 + (number * 0.2)))
             offsety = 3 + (3 * ((number - 1)/ 3))
@@ -148,8 +183,12 @@ class controller:
             offsety = 3 + (3 * ((number - 1)/ 3))
             positiony = self.fieldy + ((offsety - number) * 23) + (((number - 1) / 3) * (18 - (number * 0.05)))
         ctypes.windll.user32.SetCursorPos(int(round(positionx)), int(round(positiony)))
-        time.sleep(0.2)
-        autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+
+        if(t == "row"):
+            for i in range(0, self.betstreakRow):
+                time.sleep(0.2)
+                autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+            self.betstreakRow *= 2
 
     #
     # Clicks the clearbet button
