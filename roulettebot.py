@@ -13,6 +13,7 @@ import time
 import sys, getopt
 import autopy
 import colorama
+import random
 colorama.init()
 
 class roulettebot:
@@ -20,9 +21,10 @@ class roulettebot:
     def __init__(self, argv):
         risk = 4
         p = True
+        yolo = False
 
         try:
-            opts, args = getopt.getopt(argv,"r:h", ["help", "risk", "noprint"])
+            opts, args = getopt.getopt(argv,"ry:h", ["help", "risk", "noprint", "yolo"])
         except getopt.GetoptError:
             self.error("Invalid argument. Use <roulettebot.py -help> for instructions.")
 
@@ -42,6 +44,9 @@ class roulettebot:
                     risk = r
                 else:
                     self.error(opt + " requires and int > 0")
+            elif opt in ("-y", "--yolo"):
+                self.yolo = True
+                self.yolorisk = int(arg)
 
         self.controller = controller.controller(risk, p)
         self.graphics = graphics.graphics()
@@ -56,21 +61,32 @@ class roulettebot:
 
     def main(self):
         while(True):
-            self.controller.checkTimeout()
-            time.sleep(0.1)
-            self.controller.spin()
-            time.sleep(1)
-            self.controller.scanNumber()
-            time.sleep(0.1)
+            if(self.yolo != True):
+                self.controller.checkTimeout()
+                time.sleep(0.1)
+                self.controller.spin()
+                time.sleep(1)
+                self.controller.scanNumber()
+                time.sleep(0.1)
 
-            result1 = self.controller.checkDataColor()
-            result2 = self.controller.checkDataRow()
-            self.controller.checkWin()
+                result1 = self.controller.checkDataColor()
+                result2 = self.controller.checkDataRow()
+                self.controller.checkWin()
 
-            if(result1 != None):
-                self.controller.betColor(result1)
-            if(result2 != None):
-                self.controller.betNumber(result2 + 36, "row")
+                if(result1 != None):
+                    self.controller.betColor(result1)
+                if(result2 != None):
+                    self.controller.betNumber(result2 + 36, "row")
+            else:
+                time.sleep(1)
+                self.controller.clearBet()
+                for i in range(0, self.yolorisk + 1):
+                    r = random.randint(0,36)
+                    self.controller.betNumber(r, "yolo")
+                    time.sleep(0.2)
+
+                self.controller.spin()
+
 #
 # Default run
 #

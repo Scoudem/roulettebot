@@ -169,7 +169,7 @@ class controller:
                 row = 1
 
             else:
-                row = -1
+                return None
 
             if(row != -1):
                 print self.alert + " Streak on row " + str(row)
@@ -244,6 +244,15 @@ class controller:
             positionx = self.fieldx + (number + 2 - (3 * ((number - 1)/ 3))) * 22 + (((number - 1) / 3) * (22 + (number * 0.15)))
             offsety = 3 + (3 * ((number - 1)/ 3))
             positiony = self.fieldy + ((offsety - number) * 23) + (((number - 1) / 3) * (18 - (number * 0.05)))
+
+        if number == 0:
+            positionx -= 20
+            positiony += 40
+
+        if(t == "yolo"):
+            self.moveMouseAbs(int(round(positionx)), int(round(positiony)))
+            time.sleep(0.1)
+            autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
 
         if(t == "row"):
             amount100 = int((self.betstreakRow * 0.10) / 1.00)
