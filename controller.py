@@ -24,7 +24,7 @@ class controller:
 
         self.notice = "\x1b[35m[NOTICE]\x1b[0m"
         self.prompt = "\x1b[34m[PROMPT]\x1b[0m"
-        self.alert  = "\x1b[33m[ALERT]\x1b[0m"
+        self.alert  = " \x1b[33m[ALERT]\x1b[0m"
         self.succes = "\x1b[32m[SUCCES]\x1b[0m"
         self.fatal  = "\x1b[31m[FATAL]\x1b[0m"
         self.streakColor = (1, None) #First: streakColor number. Second: color
@@ -36,7 +36,7 @@ class controller:
         self.betstreakColor = 1
         self.image_close = autopy.bitmap.Bitmap.open("image/control/close.png", "png")
 
-        self.chipValues = {"10": (autopy.bitmap.Bitmap.open("image/control/10c.png", "png"), None), "50": (autopy.bitmap.Bitmap.open("image/control/50c.png", "png"), None), "100": (autopy.bitmap.Bitmap.open("image/control/100c.png", "png"), None)}
+        self.chipValues = {"10": None, "50": None, "100":  None}
 
         self.resultBuffer = []
 
@@ -50,7 +50,10 @@ class controller:
     #
     def moveMouseAbs(self, x, y):
         # if(self.p): print self.notice + " Moving to (" + str(x) + ", " + str(y) + ")."
-        ctypes.windll.user32.SetCursorPos(x, y)
+        if os.name == "nt":
+            ctypes.windll.user32.SetCursorPos(int(x), int(y))
+        else:
+            autopy.mouse.move(x, y)
         # if(self.p): print self.succes + " Moved to (" + str(x) + ", " + str(y) + ")."
 
     #
@@ -88,7 +91,9 @@ class controller:
         screen = autopy.bitmap.capture_screen()
         if(self.p): print screen.get_color(x, y)
 
-
+    #
+    # Returns the result of the spin
+    #
     def scanNumber(self):
         main = autopy.bitmap.capture_screen()
         area = main.get_portion(self.workspaceNumber[0], self.workspaceNumber[1])
@@ -107,7 +112,7 @@ class controller:
     def checkDataColor(self):
         if(self.lastcolor == self.streakColor[1]):
             self.streakColor = (self.streakColor[0] + 1, self.streakColor[1])
-            if(self.p): print self.notice + " " + str(self.streakColor[0]) + "x " + self.streakColor[1] + " streakColor. "
+            if(self.p): print self.alert + " " + str(self.streakColor[0]) + "x " + self.streakColor[1] + " streakColor. "
             
             if(self.streakColor[0] >= self.risk):
                 if(self.streakColor[1] == "red"):
@@ -132,9 +137,7 @@ class controller:
 
 
     #
-    # MAKE A BUFFER
-    # DETECT FROM LAST 4 * RISK ROLLS WHAT THE LEAST ROLLED ROW IS
-    # START BETTING ON THAT
+    # Bets on lines of 12
     #
     def checkDataRow(self):
         if(len(self.resultBuffer) > (self.risk * 2)):
@@ -178,16 +181,6 @@ class controller:
                     self.win = True
                     self.betstreakRow = 1
                 return None
-                
-
-
-            #     if(self.streakRow[0] >= self.risk * 2):
-            #         return self.streakRow[1]
-            #     else:
-            #         return None
-            # else:
-            #     self.streakRow = (1, row)
-
 
     #
     # Clicks the desired collor n amount of times
@@ -202,10 +195,39 @@ class controller:
 
         if(self.p): print self.notice + " Current betvalue: " + str(self.betstreakColor)
 
-        self.moveMouseAbs(x, y)
-        for i in range(0, self.betstreakColor):
-            time.sleep(0.2)
+        amount100 = int((self.betstreakColor * 0.10) / 1.00)
+        amount50 = int(((self.betstreakColor * 0.10) - amount100 * 1.00) / 0.50)
+        amount10 = int(((self.betstreakColor * 0.10) - amount100 * 1.00 - amount50 * 0.50) / 0.10)
+        
+        if amount100 > 0:
+            self.moveMouseAbs(self.chipValues["100"][0], self.chipValues["100"][1])
+            time.sleep(0.1)
             autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+            time.sleep(0.1)
+            self.moveMouseAbs(x,y)
+            for i in range(0, int(amount100)):
+                time.sleep(0.2)
+                autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+
+        if amount50 > 0:
+            self.moveMouseAbs(self.chipValues["50"][0], self.chipValues["50"][1])
+            time.sleep(0.1)
+            autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+            time.sleep(0.1)
+            self.moveMouseAbs(x,y)
+            for i in range(0, int(amount50)):
+                time.sleep(0.2)
+                autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+
+        if amount10 > 0:
+            self.moveMouseAbs(self.chipValues["10"][0], self.chipValues["10"][1])
+            time.sleep(0.1)
+            autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+            time.sleep(0.1)
+            self.moveMouseAbs(x,y)
+            for i in range(0, int(amount10)):
+                time.sleep(0.2)
+                autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
 
         self.betstreakColor *= 2
 
@@ -223,12 +245,40 @@ class controller:
             offsety = 3 + (3 * ((number - 1)/ 3))
             positiony = self.fieldy + ((offsety - number) * 23) + (((number - 1) / 3) * (18 - (number * 0.05)))
 
-        ctypes.windll.user32.SetCursorPos(int(round(positionx)), int(round(positiony)))
-
         if(t == "row"):
-            for i in range(0, self.betstreakRow):
-                time.sleep(0.2)
+            amount100 = int((self.betstreakRow * 0.10) / 1.00)
+            amount50 = int(((self.betstreakRow * 0.10) - amount100 * 1.00) / 0.50)
+            amount10 = int(((self.betstreakRow * 0.10) - amount100 * 1.00 - amount50 * 0.50) / 0.10)
+            
+            if amount100 > 0:
+                self.moveMouseAbs(self.chipValues["100"][0], self.chipValues["100"][1])
+                time.sleep(0.1)
                 autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+                time.sleep(0.1)
+                self.moveMouseAbs(int(round(positionx)), int(round(positiony)))
+                for i in range(0, int(amount100)):
+                    time.sleep(0.1)
+                    autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+
+            if amount50 > 0:
+                self.moveMouseAbs(self.chipValues["50"][0], self.chipValues["50"][1])
+                time.sleep(0.1)
+                autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+                time.sleep(0.1)
+                self.moveMouseAbs(int(round(positionx)), int(round(positiony)))
+                for i in range(0, int(amount50)):
+                    time.sleep(0.1)
+                    autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+
+            if amount10 > 0:
+                self.moveMouseAbs(self.chipValues["10"][0], self.chipValues["10"][1])
+                time.sleep(0.1)
+                autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
+                time.sleep(0.1)
+                self.moveMouseAbs(int(round(positionx)), int(round(positiony)))
+                for i in range(0, int(amount10)):
+                    time.sleep(0.1)
+                    autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
             self.betstreakRow *= 2
 
     #
@@ -237,17 +287,26 @@ class controller:
     def clearBet(self):
         if(self.p): print self.notice + " Clearing bet..."
         self.moveMouseAbs(self.clearx, self.cleary)
-        time.sleep(0.2)
+        time.sleep(0.1)
         autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
-        time.sleep(0.2)
+        time.sleep(0.1)
 
+
+    #
+    # Checks if the session has timed out
+    #
     def checkTimeout(self):
         main = autopy.bitmap.capture_screen()
         result = main.find_bitmap(self.image_close)
         if result != None:
-            print self.fatal + "Timed out. Exitting now..."
+            print self.fatal + " Timed out. Exitting now..."
+            self.moveMouseAbs(result[0], result[1])
+            autopy.mouse.click(autopy.mouse.LEFT_BUTTON)
             sys.exit(1)
 
+    #
+    # Clears the bet when we have won
+    #
     def checkWin(self):
         if(self.win):
             self.clearBet()
@@ -262,7 +321,7 @@ class controller:
         if os.path.isfile("config.json"):
             answer = raw_input(self.alert + " Old config found. Do you want to load it and skip setup? (y/n): ")
             if answer == "y" or answer == "yes":
-                config = json.load(open('config.json'))d
+                config = json.load(open('config.json'))
 
                 self.workspaceNumber = config[0]["workspace"]
                 self.fieldx = config[0]["field"][0]
@@ -275,13 +334,13 @@ class controller:
                 self.spiny = config[0]["spin"][1]
                 self.clearx = config[0]["clear"][0]
                 self.cleary = config[0]["clear"][1]
-                self.chipValues["10"] = (self.chipValues["10"][0], config[0]["10"])
-                self.chipValues["50"] = (self.chipValues["50"][0], config[0]["50"])
-                self.chipValues["100"] = (self.chipValues["100"][0], config[0]["100"])
+                self.chipValues["10"] = config[0]["10"]
+                self.chipValues["50"] = config[0]["50"]
+                self.chipValues["100"] = config[0]["100"]
 
                 print self.succes + " config succesfully loaded!"
-            else:
-                self.setupConfig()
+        else:
+            self.setupConfig()
 
     #
     # Gets the workspace. Prompts the user for input.
@@ -328,17 +387,17 @@ class controller:
         if(self.p): print self.prompt + " Select 0.10 chip..."
         raw_input("\t - Press enter to confirm location!")
         tempx1, tempy1 = autopy.mouse.get_pos()
-        self.chipValues["10"] = (self.chipValues["10"][0], (tempx1, tempy1))
+        self.chipValues["10"] = (tempx1, tempy1)
 
         if(self.p): print self.prompt + " Select 0.50 chip..."
         raw_input("\t - Press enter to confirm location!")
         tempx2, tempy2 = autopy.mouse.get_pos()
-        self.chipValues["50"] = (self.chipValues["50"][0], (tempx2, tempy2))
+        self.chipValues["50"] = (tempx2, tempy2)
 
         if(self.p): print self.prompt + " Select 1.00 chip..."
         raw_input("\t - Press enter to confirm location!")
         tempx3, tempy3 = autopy.mouse.get_pos()
-        self.chipValues["100"] = (self.chipValues["100"][0], (tempx3, tempy3))
+        self.chipValues["100"] = (tempx3, tempy3)
 
         config = [{"workspace": self.workspaceNumber, "field": (self.fieldx, self.fieldy), "red" : (self.redx, self.redy), "black": (self.blackx, self.blacky), "spin": (self.spinx, self.spiny), "clear": (self.clearx, self.cleary), "10": (tempx1, tempy1), "50": (tempx2, tempy2), "100": (tempx3, tempy3)}]
         json.dump(config, open('config.json', 'w'))
