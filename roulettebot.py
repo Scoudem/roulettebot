@@ -56,6 +56,7 @@ class roulettebot:
 
     def main(self):
         while(True):
+            self.controller.checkTimeout()
             time.sleep(1)
             self.controller.spin()
             time.sleep(1)
@@ -65,11 +66,12 @@ class roulettebot:
             result = self.controller.checkDataColor()
             if(result != None):
                 self.controller.betColor(result)
+            self.controller.checkWin()
 
             result = self.controller.checkDataRow()
             if(result != None):
                 self.controller.betNumber(result + 36, "row")
-
+            self.controller.checkWin()
 #
 # Default run
 #
