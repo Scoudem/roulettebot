@@ -339,6 +339,8 @@ class controller:
                 self.chipValues["100"] = config[0]["100"]
 
                 print self.succes + " config succesfully loaded!"
+            else:
+                self.setupConfig()
         else:
             self.setupConfig()
 
